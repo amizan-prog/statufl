@@ -5,23 +5,46 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzZbYOYT-t7hZdLpt8f
 // Fetch Dashboard Data (GET Request)
 // ------------------------------------------------------
 function fetchDashboardData() {
-    // Show a loading message on the screen
     document.getElementById("output").innerText = "Fetching data from Google Sheets...";
+    
+    // Show a loading message inside the table
+    const tbody = document.getElementById("dataTableBody");
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-primary fw-bold py-4">Memuat turun data... Sila tunggu.</td></tr>';
 
-    // We add "?action=getDashboardData" so the Apps Script knows to return JSON, not HTML
     const fetchUrl = WEB_APP_URL + "?action=getDashboardData";
 
     fetch(fetchUrl)
         .then(response => response.json())
         .then(data => {
             console.log("Dashboard Data:", data);
-            // Display the data beautifully on the HTML page
-            document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+            document.getElementById("output").innerText = "Data berjaya dimuat turun!\n\n" + JSON.stringify(data, null, 2);
+            
+            // Clear the table body
+            tbody.innerHTML = "";
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Tiada data dijumpai.</td></tr>';
+                return;
+            }
+
+            // Loop through the data and create a table row for each item
+            data.forEach(row => {
+                const tr = document.createElement("tr");
+                
+                tr.innerHTML = `
+                    <td class="fw-bold">${row.unit}</td>
+                    <td>${row.drip}</td>
+                    <td>${row.bukanUbat}</td>
+                    <td class="text-center">${row.jumTroli}</td>
+                    <td>${row.emel}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         })
         .catch(error => {
             console.error("Error fetching data:", error);
-            // Display the error on the screen if something goes wrong
             document.getElementById("output").innerText = "Error: " + error;
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Ralat memuat turun data. Sila periksa System Logs.</td></tr>';
         });
 }
 
@@ -30,7 +53,7 @@ function fetchDashboardData() {
 // ------------------------------------------------------
 function triggerEmail(targetEmail, messageHtml) {
     const payload = {
-        action: "sendEmail", // This tells doPost() which if-statement to run
+        action: "sendEmail", 
         targetEmail: targetEmail,
         mesejHTML: messageHtml
     };
@@ -38,21 +61,26 @@ function triggerEmail(targetEmail, messageHtml) {
     fetch(WEB_APP_URL, {
         method: 'POST',
         headers: {
-            'Content-Type': 'text/plain;charset=utf-8', // Prevents CORS errors
+            'Content-Type': 'text/plain;charset=utf-8', 
         },
         body: JSON.stringify(payload) 
     })
     .then(response => response.json())
     .then(data => {
         console.log("Email Response:", data);
-        // Display the success message on the HTML page
         document.getElementById("output").innerText = JSON.stringify(data, null, 2);
-        alert(data.message); // Shows a pop-up: "Emel berjaya dihantar..."
+        
+        // Show a nice Bootstrap alert-style popup
+        alert("✅ " + data.message); 
+        
+        // Clear the form inputs after sending
+        document.getElementById("emailInput").value = "";
+        document.getElementById("messageInput").value = "";
     })
     .catch(error => {
         console.error("Error sending email:", error);
-        // Display the error on the screen if something goes wrong
         document.getElementById("output").innerText = "Error: " + error;
+        alert("❌ Ralat menghantar emel!");
     });
 }
 
@@ -64,13 +92,11 @@ function handleSendEmail() {
     const message = document.getElementById("messageInput").value;
 
     if (!email || !message) {
-        alert("Sila masukkan emel dan mesej!");
+        alert("⚠️ Sila masukkan emel dan mesej!");
         return;
     }
 
-    // Show a loading message on the screen
     document.getElementById("output").innerText = "Sending email to " + email + "...";
     
-    // Calls the triggerEmail function we created above
-    triggerEmail(email, "<h3>Notis Inden</h3><p>" + message + "</p>");
+    triggerEmail(email, "<h3>Notis Inden Farmasi Logistik</h3><p>" + message + "</p><br><hr><small>Ini adalah mesej janaan komputer.</small>");
 }
