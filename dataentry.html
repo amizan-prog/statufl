@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inden Data Entry</title>
+    <!-- Bootstrap CSS for corporate styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+      .container { max-width: 650px; margin-top: 40px; margin-bottom: 40px; background: white; padding: 35px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+      .btn-whatsapp { background-color: #25D366; color: white; font-weight: bold; width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; text-decoration: none; display: block; text-align: center; }
+      .btn-whatsapp:hover { background-color: #1ebe57; color: white; }
+      h2 { color: #2c3e50; font-weight: 700; margin-bottom: 25px; }
+      .form-label { font-weight: 600; color: #34495e; font-size: 0.95rem; }
+      .btn-primary { background-color: #0d6efd; border: none; padding: 10px; font-weight: 600; }
+      select.form-select { font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2 class="text-center">Inden Data Entry</h2>
+      
+      <form id="dataForm">
+        <!-- UNIT Lookup -->
+        <div class="mb-4">
+          <label for="unit" class="form-label">UNIT</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="unit" name="unit" required placeholder="e.g. ICU, W5A, DCO">
+            <button class="btn btn-outline-secondary" type="button" onclick="loadUnitData()">Load Data</button>
+          </div>
+          <small class="text-muted">Type a unit and click 'Load Data' to edit, or just type a new one to add.</small>
+        </div>
+
+        <!-- Statuses -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="statusDrip" class="form-label">Status Inden Drip</label>
+            <select class="form-select" id="statusDrip" name="statusDrip" onchange="updateSelectColor(this)">
+              <option value="Inden Belum Diterima" style="background-color: #ced4da; color: black;">Inden Belum Diterima</option>
+              <option value="Inden Baru Diterima" style="background-color: #0d6efd; color: white;">Inden Baru Diterima</option>
+              <option value="Inden Sedang Diproses" style="background-color: #ffc107; color: black;">Inden Sedang Diproses</option>
+              <option value="Inden Sedia Diambil" style="background-color: #198754; color: white;">Inden Sedia Diambil</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="statusBukanUbat" class="form-label">Status Inden Bukan Ubat</label>
+            <select class="form-select" id="statusBukanUbat" name="statusBukanUbat" onchange="updateSelectColor(this)">
+              <option value="Inden Belum Diterima" style="background-color: #ced4da; color: black;">Inden Belum Diterima</option>
+              <option value="Inden Baru Diterima" style="background-color: #0d6efd; color: white;">Inden Baru Diterima</option>
+              <option value="Inden Sedang Diproses" style="background-color: #ffc107; color: black;">Inden Sedang Diproses</option>
+              <option value="Inden Sedia Diambil" style="background-color: #198754; color: white;">Inden Sedia Diambil</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Trolley Details -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="jumlahTroli" class="form-label">Jumlah Troli</label>
+            <input type="number" class="form-control" id="jumlahTroli" name="jumlahTroli" placeholder="0">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="perluTroli" class="form-label">Perlu Troli?</label>
+            <select class="form-select" id="perluTroli" name="perluTroli">
+              <option value="Tidak">Tidak</option>
+              <option value="Ya">Ya</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- PIC Info -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="emailPic" class="form-label">Email PIC</label>
+            <input type="email" class="form-control" id="emailPic" name="emailPic" placeholder="email@example.com">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="telPic" class="form-label">No. Tel PIC</label>
+            <input type="text" class="form-control" id="telPic" name="telPic" placeholder="012-3456789">
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary w-100 mt-2">Save Record</button>
+      </form>
+      
+      <!-- WhatsApp Button -->
+      <a href="https://go.gov.my/statufl" target="_blank" class="btn-whatsapp">
+        GROUP PHIS WHATSAPP
+      </a>
+      
+      <!-- Status Message -->
+      <div id="message" class="mt-3 text-center fw-bold"></div>
+    </div>
+
+    <!-- Frontend Logic for GitHub Pages -->
+    <script>
+      // YOUR GOOGLE APPS SCRIPT URL
+      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxsIg6ENtFfOrbwI_6bm2UTymOrdIoe5EVw8MSCAPrdnx-6iu6CiLWg7YKpxhNXyw2AA/exec";
+
+      function updateSelectColor(element) {
+        const value = element.value;
+        if (value === "Inden Belum Diterima") {
+          element.style.backgroundColor = "#ced4da"; element.style.color = "black";
+        } else if (value === "Inden Baru Diterima") {
+          element.style.backgroundColor = "#0d6efd"; element.style.color = "white";
+        } else if (value === "Inden Sedang Diproses") {
+          element.style.backgroundColor = "#ffc107"; element.style.color = "black";
+        } else if (value === "Inden Sedia Diambil") {
+          element.style.backgroundColor = "#198754"; element.style.color = "white";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function() {
+        updateSelectColor(document.getElementById('statusDrip'));
+        updateSelectColor(document.getElementById('statusBukanUbat'));
+      });
+
+      function loadUnitData() {
+        var unit = document.getElementById('unit').value.trim();
+        if (!unit) {
+          alert("Please enter a UNIT first.");
+          return;
+        }
+        
+        document.getElementById('message').innerText = "Loading data...";
+        document.getElementById('message').className = "mt-3 text-center fw-bold text-secondary";
+        
+        // Fetch data from Google Apps Script
+        fetch(SCRIPT_URL + "?action=getUnitData&unit=" + encodeURIComponent(unit))
+          .then(response => response.json())
+          .then(data => {
+            if (data) {
+              document.getElementById('statusDrip').value = data.statusDrip || "Inden Belum Diterima";
+              document.getElementById('statusBukanUbat').value = data.statusBukanUbat || "Inden Belum Diterima";
+              document.getElementById('jumlahTroli').value = data.jumlahTroli || "";
+              document.getElementById('perluTroli').value = data.perluTroli || "Tidak";
+              document.getElementById('emailPic').value = data.emailPic || "";
+              document.getElementById('telPic').value = data.telPic || "";
+              
+              document.getElementById('message').innerText = "Data loaded for " + unit;
+              document.getElementById('message').className = "mt-3 text-center fw-bold text-success";
+            } else {
+              document.getElementById('message').innerText = "Unit not found. Fill the form to add as a new record.";
+              document.getElementById('message').className = "mt-3 text-center fw-bold text-warning";
+              
+              document.getElementById('statusDrip').value = "Inden Belum Diterima";
+              document.getElementById('statusBukanUbat').value = "Inden Belum Diterima";
+              document.getElementById('jumlahTroli').value = "";
+              document.getElementById('perluTroli').value = "Tidak";
+              document.getElementById('emailPic').value = "";
+              document.getElementById('telPic').value = "";
+            }
+            updateSelectColor(document.getElementById('statusDrip'));
+            updateSelectColor(document.getElementById('statusBukanUbat'));
+          })
+          .catch(error => {
+            document.getElementById('message').innerText = "Error loading data.";
+            document.getElementById('message').className = "mt-3 text-center fw-bold text-danger";
+          });
+      }
+
+      document.getElementById('dataForm').addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        
+        document.getElementById('message').innerText = "Saving...";
+        document.getElementById('message').className = "mt-3 text-center fw-bold text-primary";
+        document.getElementById('submitBtn').disabled = true;
+        
+        var formData = {
+          unit: document.getElementById('unit').value.trim(),
+          statusDrip: document.getElementById('statusDrip').value,
+          statusBukanUbat: document.getElementById('statusBukanUbat').value,
+          jumlahTroli: document.getElementById('jumlahTroli').value,
+          perluTroli: document.getElementById('perluTroli').value,
+          emailPic: document.getElementById('emailPic').value,
+          telPic: document.getElementById('telPic').value
+        };
+
+        // Post data to Google Apps Script
+        fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8",
+          },
+          body: JSON.stringify({
+            action: "saveData",
+            formData: formData
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('message').innerText = data.message;
+          document.getElementById('message').className = "mt-3 text-center fw-bold text-success";
+          document.getElementById('submitBtn').disabled = false;
+        })
+        .catch(error => {
+          document.getElementById('message').innerText = "Error saving data.";
+          document.getElementById('message').className = "mt-3 text-center fw-bold text-danger";
+          document.getElementById('submitBtn').disabled = false;
+        });
+      });
+    </script>
+  </body>
+</html>
+update to existing code.gs, // --- 1. GET REQUESTS (Handles both HTML View and GitHub Pages API) ---function doGet(e) { // A. If GitHub Pages requests data (e.g., URL ends with ?action=getDashboardData) if (e && e.parameter && e.parameter.action === 'getDashboardData') { var sheetUrl = e.parameter.sheetUrl || ""; var data = getDashboardData(sheetUrl); return ContentService.createTextOutput(JSON.stringify(data)) .setMimeType(ContentService.MimeType.JSON); } // B. NEW: If user wants to open the Data Entry Form (URL ends with ?page=DataEntry) if (e && e.parameter && e.parameter.page === 'DataEntry') { return HtmlService.createHtmlOutputFromFile('DataEntry') .setTitle('Data Entry Form') .addMetaTag('viewport', 'width=device-width, initial-scale=1') .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL); } // C. Default: Serve your existing Apps Script HTML page (Index.html) return HtmlService.createTemplateFromFile('Index') .evaluate() .setTitle('Status Inden Farmasi Logistik') .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL) .addMetaTag('viewport', 'width=device-width, initial-scale=1');}
+
+// --- 2. POST REQUESTS (Receives commands from GitHub Pages) ---function doPost(e) { try { // Parse the incoming data sent from GitHub Pages var incomingData = JSON.parse(e.postData.contents); // Check what action GitHub Pages wants us to perform if (incomingData.action === "sendEmail") { sendEmailNotification(incomingData.mesejHTML, incomingData.targetEmail); return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Emel berjaya dihantar ke " + incomingData.targetEmail })).setMimeType(ContentService.MimeType.JSON); }
+
+// Default success response return ContentService.createTextOutput(JSON.stringify({status: "success", message: "Data received"})) .setMimeType(ContentService.MimeType.JSON); } catch (error) { return ContentService.createTextOutput(JSON.stringify({"error": error.toString()})) .setMimeType(ContentService.MimeType.JSON); }}
+
+// --- 3. YOUR EXISTING FUNCTIONS ---
+
+function getDashboardData(sheetUrl) { var ss; try { if (sheetUrl && sheetUrl.toString().trim() !== "") { ss = SpreadsheetApp.openByUrl(sheetUrl.toString().trim()); } else { ss = SpreadsheetApp.getActiveSpreadsheet(); } } catch(e) { ss = SpreadsheetApp.getActiveSpreadsheet(); } var sheet = ss.getSheetByName('DATA'); if (!sheet) return []; var lastRow = sheet.getLastRow(); if (lastRow < 2) return []; // BACA SEHINGGA LAJUR G (7) UNTUK MENGAMBIL EMEL var data = sheet.getRange(2, 1, lastRow - 1, 7).getValues(); var result = data.map(function(row) { return { unit: row[0], drip: row[1], bukanUbat: row[2], jumTroli: row[3] === "" ? "-" : row[3], perluTroli: row[4] === "" ? "--" : row[4], emel: row[6] ? row[6].toString().trim() : "" // Lajur G }; }).filter(function(row) { return row.unit !== ""; }); return result;}
+
+// --- FUNGSI MENGHANTAR EMEL (KINI MENERIMA EMEL SPESIFIK DARI FRONTEND) ---function sendEmailNotification(mesejHTML, targetEmail) { // Jika tiada emel atau format tidak sah, berhenti if (!targetEmail || targetEmail.indexOf("@") === -1) return; var tajuk = "🚨 Amaran Sistem: Perubahan Status Inden Logistik"; try { MailApp.sendEmail({ to: targetEmail, subject: tajuk, htmlBody: mesejHTML }); Logger.log("Emel dihantar kepada: " + targetEmail); } catch(e) { Logger.log("Ralat Emel: " + e); }}
+
+function testAuth() { MailApp.sendEmail(Session.getActiveUser().getEmail(), "Ujian Kebenaran", "Kebenaran berjaya!");}
+
+
+// --- 4. NEW FUNCTIONS FOR DATA ENTRY FORM ---
+
+// Function to fetch existing data for a specific UNITfunction getUnitData(unit) { var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("DATA"); var data = sheet.getDataRange().getValues(); // Loop through rows to find the unit for (var i = 1; i < data.length; i++) { if (data[i][0] === unit) { return { row: i + 1, statusDrip: data[i][1], statusBukanUbat: data[i][2], jumlahTroli: data[i][3], perluTroli: data[i][4], emailPic: data[i][6], telPic: data[i][7] }; } } return null; // Return null if unit doesn't exist}
+
+// Function to save or update data from the HTML formfunction saveData(formData) { var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("DATA"); var data = sheet.getDataRange().getValues(); var rowIndex = -1; // Check if unit already exists for (var i = 1; i < data.length; i++) { if (data[i][0] === formData.unit) { rowIndex = i + 1; break; } } if (rowIndex !== -1) { // Update existing row sheet.getRange(rowIndex, 2).setValue(formData.statusDrip); sheet.getRange(rowIndex, 3).setValue(formData.statusBukanUbat); sheet.getRange(rowIndex, 4).setValue(formData.jumlahTroli); sheet.getRange(rowIndex, 5).setValue(formData.perluTroli); sheet.getRange(rowIndex, 7).setValue(formData.emailPic); sheet.getRange(rowIndex, 8).setValue(formData.telPic); return "Data updated successfully for " + formData.unit; } else { // Add new row at the bottom var newRow = [ formData.unit, formData.statusDrip, formData.statusBukanUbat, formData.jumlahTroli, formData.perluTroli, "", // Blank column F formData.emailPic, formData.telPic, "Hantar WhatsApp", "https://go.gov.my/statufl" // WhatsApp Group Link ]; sheet.appendRow(newRow); return "New record added for " + formData.unit; }}
+Gemini response
+Model thoughts
+Here is your updated Code.gs file. I have taken your exact existing code and injected the missing connections inside doGet and doPost so that your GitHub Pages frontend can successfully fetch and save the data.
+
+Replace everything in your Code.gs file with this:
+JavaScript
+// --- 1. GET REQUESTS (Handles both HTML View and GitHub Pages API) ---
+function doGet(e) {
+  // A. If GitHub Pages requests data (e.g., URL ends with ?action=getDashboardData)
+  if (e && e.parameter && e.parameter.action === 'getDashboardData') {
+    var sheetUrl = e.parameter.sheetUrl || ""; 
+    var data = getDashboardData(sheetUrl);
+    
+    return ContentService.createTextOutput(JSON.stringify(data))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  // B. NEW: GitHub Pages requests specific UNIT data (For the Data Entry Form)
+  if (e && e.parameter && e.parameter.action === 'getUnitData') {
+    var unit = e.parameter.unit || "";
+    var data = getUnitData(unit);
+    return ContentService.createTextOutput(JSON.stringify(data))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  // C. If user wants to open the Data Entry Form directly via Apps Script (URL ends with ?page=DataEntry)
+  if (e && e.parameter && e.parameter.page === 'DataEntry') {
+    return HtmlService.createHtmlOutputFromFile('DataEntry')
+      .setTitle('Data Entry Form')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+  
+  // D. Default: Serve your existing Apps Script HTML page (Index.html)
+  return HtmlService.createTemplateFromFile('Index')
+      .evaluate()
+      .setTitle('Status Inden Farmasi Logistik')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+// --- 2. POST REQUESTS (Receives commands from GitHub Pages) ---
+function doPost(e) {
+  try {
+    // Parse the incoming data sent from GitHub Pages
+    var incomingData = JSON.parse(e.postData.contents);
+    
+    // Check what action GitHub Pages wants us to perform
+    if (incomingData.action === "sendEmail") {
+      sendEmailNotification(incomingData.mesejHTML, incomingData.targetEmail);
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success", 
+        message: "Emel berjaya dihantar ke " + incomingData.targetEmail
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // NEW: Save Data from GitHub Pages Data Entry Form
+    if (incomingData.action === "saveData") {
+      var resultMessage = saveData(incomingData.formData);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success", 
+        message: resultMessage
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Default success response
+    return ContentService.createTextOutput(JSON.stringify({status: "success", message: "Data received"}))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({"error": error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// --- 3. YOUR EXISTING FUNCTIONS ---
+
+function getDashboardData(sheetUrl) {
+  var ss;
+  
+  try {
+    if (sheetUrl && sheetUrl.toString().trim() !== "") {
+      ss = SpreadsheetApp.openByUrl(sheetUrl.toString().trim());
+    } else {
+      ss = SpreadsheetApp.getActiveSpreadsheet();
+    }
+  } catch(e) {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+  }
+  
+  var sheet = ss.getSheetByName('DATA');
+  if (!sheet) return []; 
+  
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  
+  // BACA SEHINGGA LAJUR G (7) UNTUK MENGAMBIL EMEL
+  var data = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
+  
+  var result = data.map(function(row) {
+    return {
+      unit: row[0],
+      drip: row[1],
+      bukanUbat: row[2],
+      jumTroli: row[3] === "" ? "-" : row[3],
+      perluTroli: row[4] === "" ? "--" : row[4],
+      emel: row[6] ? row[6].toString().trim() : "" // Lajur G
+    };
+  }).filter(function(row) {
+    return row.unit !== ""; 
+  });
+  
+  return result;
+}
+
+// --- FUNGSI MENGHANTAR EMEL (KINI MENERIMA EMEL SPESIFIK DARI FRONTEND) ---
+function sendEmailNotification(mesejHTML, targetEmail) {
+  // Jika tiada emel atau format tidak sah, berhenti
+  if (!targetEmail || targetEmail.indexOf("@") === -1) return; 
+  
+  var tajuk = "🚨 Amaran Sistem: Perubahan Status Inden Logistik";
+  
+  try {
+    MailApp.sendEmail({
+      to: targetEmail,
+      subject: tajuk,
+      htmlBody: mesejHTML
+    });
+    Logger.log("Emel dihantar kepada: " + targetEmail);
+  } catch(e) {
+    Logger.log("Ralat Emel: " + e);
+  }
+}
+
+function testAuth() {
+  MailApp.sendEmail(Session.getActiveUser().getEmail(), "Ujian Kebenaran", "Kebenaran berjaya!");
+}
+
+// --- 4. NEW FUNCTIONS FOR DATA ENTRY FORM ---
+
+// Function to fetch existing data for a specific UNIT
+function getUnitData(unit) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("DATA");
+  var data = sheet.getDataRange().getValues();
+  
+  // Loop through rows to find the unit
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] === unit) {
+      return {
+        row: i + 1,
+        statusDrip: data[i][1],
+        statusBukanUbat: data[i][2],
+        jumlahTroli: data[i][3],
+        perluTroli: data[i][4],
+        emailPic: data[i][6],
+        telPic: data[i][7]
+      };
+    }
+  }
+  return null; // Return null if unit doesn't exist
+}
+
+// Function to save or update data from the HTML form
+function saveData(formData) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("DATA");
+  var data = sheet.getDataRange().getValues();
+  var rowIndex = -1;
+  
+  // Check if unit already exists
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] === formData.unit) {
+      rowIndex = i + 1;
+      break;
+    }
+  }
+  
+  if (rowIndex !== -1) {
+    // Update existing row
+    sheet.getRange(rowIndex, 2).setValue(formData.statusDrip);
+    sheet.getRange(rowIndex, 3).setValue(formData.statusBukanUbat);
+    sheet.getRange(rowIndex, 4).setValue(formData.jumlahTroli);
+    sheet.getRange(rowIndex, 5).setValue(formData.perluTroli);
+    sheet.getRange(rowIndex, 7).setValue(formData.emailPic);
+    sheet.getRange(rowIndex, 8).setValue(formData.telPic);
+    return "Data updated successfully for " + formData.unit;
+  } else {
+    // Add new row at the bottom
+    var newRow = [
+      formData.unit,
+      formData.statusDrip,
+      formData.statusBukanUbat,
+      formData.jumlahTroli,
+      formData.perluTroli,
+      "", // Blank column F
+      formData.emailPic,
+      formData.telPic,
+      "Hantar WhatsApp",
+      "https://go.gov.my/statufl" // WhatsApp Group Link
+    ];
+    sheet.appendRow(newRow);
+    return "New record added for " + formData.unit;
+  }
+}
