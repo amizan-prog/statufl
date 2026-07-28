@@ -176,15 +176,8 @@
         document.getElementById('message').innerText = "Loading data...";
         document.getElementById('message').className = "mt-3 text-center fw-bold text-secondary";
         
-        // Menggunakan redirect: "follow" untuk elak ralat Google Script redirect
-        fetch(SCRIPT_URL + "?action=getUnitData&unit=" + encodeURIComponent(unit), {
-          method: "GET",
-          redirect: "follow"
-        })
-          .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-          })
+        fetch(SCRIPT_URL + "?action=getUnitData&unit=" + encodeURIComponent(unit))
+          .then(response => response.json())
           .then(data => {
             if (data) {
               document.getElementById('statusDrip').value = data.statusDrip || "Inden Belum Diterima";
@@ -211,8 +204,7 @@
             updateSelectColor(document.getElementById('statusBukanUbat'));
           })
           .catch(error => {
-            console.error("Fetch Error:", error);
-            document.getElementById('message').innerText = "Error loading data: " + error.message;
+            document.getElementById('message').innerText = "Error loading data.";
             document.getElementById('message').className = "mt-3 text-center fw-bold text-danger";
           });
       }
@@ -252,8 +244,7 @@
           document.getElementById('submitBtn').disabled = false;
         })
         .catch(error => {
-          console.error("Save Error:", error);
-          document.getElementById('message').innerText = "Error saving data: " + error.message;
+          document.getElementById('message').innerText = "Error saving data.";
           document.getElementById('message').className = "mt-3 text-center fw-bold text-danger";
           document.getElementById('submitBtn').disabled = false;
         });
