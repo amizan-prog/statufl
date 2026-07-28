@@ -4,33 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Status Inden Farmasi Logistik</title>
+    <!-- Load Bootstrap 5 for a modern, clean UI -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; box-shadow: 0 4px 8px rgba(0,0,0,0.05); border-radius: 10px; }
+        .card-header { border-radius: 10px 10px 0 0 !important; font-weight: 600; }
+        .table th { background-color: #f8f9fa; color: #495057; }
+        pre { background-color: #212529; color: #00ff00; padding: 15px; border-radius: 5px; }
+    </style>
 </head>
 <body>
-    <h1>Status Inden Farmasi Logistik</h1>
-    
-    <!-- 1. Button to test getting data from the Google Sheet -->
-    <h3>Dapatkan Data (Get Data)</h3>
-    <button onclick="fetchDashboardData()">Get Dashboard Data</button>
+    <div class="container py-5">
+        <h2 class="text-center mb-5 text-primary fw-bold">📦 Dashboard Status Inden Farmasi Logistik</h2>
+        
+        <div class="row g-4">
+            <!-- Left Column: Data Table -->
+            <div class="col-lg-8">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                        <h5 class="mb-0">Senarai Status Inden</h5>
+                        <button class="btn btn-light btn-sm fw-bold text-primary" onclick="fetchDashboardData()">
+                            🔄 Kemas Kini Data (Refresh)
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Unit</th>
+                                        <th>Status Drip</th>
+                                        <th>Status Bukan Ubat</th>
+                                        <th class="text-center">Jum. Troli</th>
+                                        <th>Emel PIC</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dataTableBody">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <em>Sila klik butang "Kemas Kini Data" untuk memuat turun data dari Google Sheets.</em>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <hr>
+            <!-- Right Column: Email Form -->
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white py-3">
+                        <h5 class="mb-0">✉️ Hantar Notis Emel</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary">Emel Penerima (Target Email)</label>
+                            <input type="email" class="form-control" id="emailInput" placeholder="contoh: apmdamizan@nci.gov.my">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary">Mesej</label>
+                            <textarea class="form-control" id="messageInput" rows="4" placeholder="Taip mesej anda di sini..."></textarea>
+                        </div>
+                        <button class="btn btn-success w-100 fw-bold py-2" onclick="handleSendEmail()">
+                            Hantar Emel Sekarang
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <!-- 2. Inputs and Button to test sending an email -->
-    <h3>Hantar Emel (Send Email)</h3>
-    <label>Target Email:</label><br>
-    <input type="email" id="emailInput" placeholder="name@example.com"><br><br>
-    
-    <label>Message:</label><br>
-    <textarea id="messageInput" rows="3" placeholder="Sila ambil inden anda..."></textarea><br><br>
-    
-    <button onclick="handleSendEmail()">Send Email</button>
+        <!-- System Logs (Kept for debugging, but styled nicely) -->
+        <div class="mt-5">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0">💻 System Logs (Output)</h6>
+                </div>
+                <div class="card-body p-0">
+                    <pre id="output" class="mb-0" style="max-height: 200px; overflow-y: auto;">Menunggu arahan...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <hr>
-
-    <!-- 3. This is where the results will show up -->
-    <h3>Output:</h3>
-    <pre id="output">Waiting for action...</pre>
-
-    <!-- Link to your JavaScript file -->
     <script src="script.js"></script>
 </body>
 </html>
