@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Cross_icon.svg/1024px-Cross_icon.svg.png">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #0f172a; --text-color: #f8fafc; --card-bg: #1e293b;
+      --card-border: #3b82f6; --footer-bg: #0b1120; --btn-blue: #2563eb;
+      --btn-gray: #64748b; --cyan-text: #22d3ee; --input-bg: #1e293b;
+      --input-border: #334155;
+    }
+    body.light-mode {
+      --bg-color: #f1f5f9; --text-color: #0f172a; --card-bg: #ffffff;
+      --card-border: #3b82f6; --footer-bg: #e2e8f0; --input-bg: #ffffff;
+      --input-border: #cbd5e1;
+    }
+    body {
+      font-family: 'Montserrat', sans-serif; background-color: var(--bg-color);
+      color: var(--text-color); margin: 0; padding: 0; transition: background-color 0.3s, color 0.3s;
+    }
+    #unlock-msg {
+      background-color: #f59e0b; color: #000; text-align: center; padding: 15px;
+      font-size: 1rem; font-weight: 700; cursor: pointer; border-bottom: 2px solid #b45309;
+      animation: pulse-bg 2s infinite;
+    }
+    @keyframes pulse-bg { 0% { background-color: #f59e0b; } 50% { background-color: #fbbf24; } 100% { background-color: #f59e0b; } }
+    .scrolling-banner {
+      background-color: #10b981; color: white; padding: 8px 0; font-weight: 700;
+      font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center;
+    }
+    .main-content { padding: 20px; }
+    .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 15px; }
+    h1 { font-size: 1.5rem; color: #3b82f6; margin: 0; text-transform: uppercase; }
+    .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .search-box { padding: 10px 15px; border-radius: 8px; border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--text-color); width: 200px; outline: none; }
+    .toggle-btn { padding: 8px 15px; border-radius: 8px; border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--text-color); cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .toggle-btn:hover { filter: brightness(1.2); }
+    
+    /* URL Config Bar - Tersembunyi secara default */
+    #urlConfigSection { 
+      display: none; /* Disembunyikan */
+      background-color: var(--card-bg); padding: 12px 15px; border-radius: 10px; 
+      margin-bottom: 20px; gap: 10px; align-items: center; border: 1px solid var(--input-border); 
+      flex-wrap: wrap; animation: slideDown 0.3s ease-out;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .url-input { flex-grow: 1; min-width: 250px; padding: 10px 15px; border-radius: 8px; border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--text-color); outline: none; }
+    .btn-primary { background-color: var(--btn-blue); color: white; border: none; }
+    
+    .live-status { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+    .live-time { font-size: 0.85rem; color: #10b981; display: flex; align-items: center; gap: 5px; }
+    .live-time::before { content: ''; display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+    .sync-indicator { font-size: 0.8rem; color: #94a3b8; font-style: italic; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .card { background-color: var(--card-bg); border-radius: 10px; padding: 20px 20px 0 20px; border-left: 4px solid var(--card-border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; overflow: hidden; transition: transform 0.2s; }
+    .card-title { text-align: center; font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; letter-spacing: 1px; }
+    .status-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .status-label { font-size: 0.9rem; color: var(--text-color); opacity: 0.8; }
+    .status-badge { padding: 8px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-align: center; width: 55%; color: white; text-transform: uppercase; }
+    .bg-blue { background-color: var(--btn-blue); } .bg-gray { background-color: var(--btn-gray); } .bg-green { background-color: #10b981; } .bg-yellow { background-color: #f59e0b; }
+    .card-footer { background-color: var(--footer-bg); margin: 10px -20px 0 -20px; padding: 15px 20px; display: flex; justify-content: space-around; }
+    .footer-item { text-align: center; } .footer-val { font-size: 1.2rem; font-weight: 700; color: var(--cyan-text); margin-bottom: 5px; } .footer-lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; }
+    .loader { text-align: center; padding: 50px; font-size: 1.2rem; color: var(--btn-blue); grid-column: 1 / -1; }
+    
+    #toast-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    .toast { 
+      background-color: #ec4899; color: white; padding: 20px 40px; border-radius: 12px; 
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); font-weight: 700; font-size: 1.1rem; 
+      display: flex; align-items: center; justify-content: center; gap: 15px; text-align: center; 
+      opacity: 0; transform: scale(0.5); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative; overflow: hidden; max-width: 80vw; line-height: 1.4;
+    }
+    .toast.show { opacity: 1; transform: scale(1); }
+    
+    .toast-progress {
+      position: absolute; bottom: 0; left: 0; height: 5px; background-color: rgba(255,255,255,0.8);
+      width: 100%; animation: toast-timer 6s linear forwards;
+    }
+    @keyframes toast-timer { 0% { width: 100%; } 100% { width: 0%; } }
+
+    .glow-green {
+      border: 2px solid #10b981 !important;
+      border-left: 6px solid #34d399 !important; 
+      background-color: rgba(16, 185, 129, 0.05) !important; 
+      animation: beautiful-neon-pulse 2s ease-in-out infinite alternate;
+      z-index: 10; 
+    }
+    body.light-mode .glow-green { background-color: rgba(16, 185, 129, 0.1) !important; }
+
+    @keyframes beautiful-neon-pulse {
+      0% { 
+        box-shadow: 0 0 5px rgba(16, 185, 129, 0.2), 0 0 10px rgba(16, 185, 129, 0.1), inset 0 0 10px rgba(16, 185, 129, 0.05);
+        transform: translateY(0) scale(1.01); border-color: rgba(16, 185, 129, 0.5) !important;
+      }
+      100% { 
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 20px rgba(16, 185, 129, 0.6), 0 0 30px rgba(16, 185, 129, 0.4), 0 0 50px rgba(16, 185, 129, 0.2), inset 0 0 20px rgba(16, 185, 129, 0.2);
+        transform: translateY(-4px) scale(1.03); border-color: #34d399 !important; 
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="unlock-msg" onclick="unlockFeatures()">⚠️ KLIK DI SINI untuk Mengaktifkan Bunyi & Halang Tab Ditidurkan ⚠️</div>
+  
+  <div class="scrolling-banner">
+    <marquee id="dynamicBanner" scrollamount="6">✅ MEMUATKAN STATUS INDEN... ✅</marquee>
+  </div>
+  
+  <div class="main-content">
+    <div class="header-container">
+      <h1>STATUS INDEN FARMASI LOGISTIK</h1>
+      <div class="controls">
+        <!-- BUTANG GEAR DITAMBAH DI SINI -->
+        <button class="toggle-btn" onclick="toggleUrlConfig()" title="Tetapan Sumber URL">⚙️</button>
+        <button class="toggle-btn" onclick="toggleTheme()">☀️ Mod Cerah</button>
+        <input type="text" id="searchInput" class="search-box" placeholder="Cari Unit Aktif..." onkeyup="filterCards()">
+      </div>
+    </div>
+
+    <!-- KONFIGURASI SUMBER URL (Tersembunyi secara lalai) -->
+    <div id="urlConfigSection">
+      <span style="font-size: 1.2rem;" title="Pautan Sumber">🔗</span>
+      <input type="text" id="sheetUrlInput" class="url-input" placeholder="Tampal URL Google Sheets untuk dipantau (Kosongkan untuk guna sheet asal)...">
+      <button class="toggle-btn btn-primary" onclick="saveSheetUrl()">Set Sumber</button>
+    </div>
+    
+    <div class="live-status">
+      <div class="live-time" id="clock">Masa sistem: Memuatkan...</div>
+      <div class="sync-indicator" id="syncStatus">Menunggu data...</div>
+    </div>
+    
+    <div id="app" class="dashboard-grid">
+      <div class="loader">Memuatkan pangkalan data secara langsung...</div>
+    </div>
+  </div>
+  
+  <div id="toast-container"></div>
+  
+  <script>
+    let previousData = []; 
+    let isFirstLoad = true;
+    let audioCtx;
+    let silentOscillator; 
+    let originalTitle = "Status Inden Farmasi Logistik";
+    let blinkInterval;
+    
+    let monitorUrl = localStorage.getItem('monitorSheetUrl') || "";
+    
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById('sheetUrlInput').value = monitorUrl;
+    });
+
+    const workerCode = `
+      setInterval(() => {
+        postMessage('sync');
+      }, 5000);
+    `;
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    const worker = new Worker(URL.createObjectURL(blob));
+    
+    worker.onmessage = function(e) {
+      if (e.data === 'sync') {
+        fetchDashboardData();
+      }
+    };
+
+    function unlockFeatures() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      
+      if (!silentOscillator) {
+        silentOscillator = audioCtx.createOscillator();
+        let silentGain = audioCtx.createGain();
+        silentGain.gain.value = 0; 
+        silentOscillator.connect(silentGain);
+        silentGain.connect(audioCtx.destination);
+        silentOscillator.start();
+      }
+      
+      document.getElementById('unlock-msg').style.display = 'none';
+    }
+
+    // FUNGSI UNTUK BUKA/TUTUP TETAPAN URL
+    function toggleUrlConfig() {
+      var configSection = document.getElementById('urlConfigSection');
+      if (configSection.style.display === 'flex') {
+        configSection.style.display = 'none';
+      } else {
+        configSection.style.display = 'flex';
+      }
+    }
+
+    function saveSheetUrl() {
+      monitorUrl = document.getElementById('sheetUrlInput').value.trim();
+      localStorage.setItem('monitorSheetUrl', monitorUrl);
+      showToast("URL Sumber dikemas kini!");
+      
+      // Sembunyikan semula ruangan selepas butang ditekan
+      document.getElementById('urlConfigSection').style.display = 'none';
+      
+      isFirstLoad = true;
+      document.getElementById('app').innerHTML = '<div class="loader">Memuatkan pangkalan data baru...</div>';
+      fetchDashboardData();
+    }
+
+    fetchDashboardData();
+
+    function fetchDashboardData() {
+      document.getElementById('syncStatus').innerText = "Menyegarkan data...";
+      google.script.run
+        .withSuccessHandler(function(data) {
+          processData(data);
+          document.getElementById('syncStatus').innerText = "Segerak latar belakang aktif (Setiap 5s)";
+        })
+        .withFailureHandler(function(error) {
+          document.getElementById('syncStatus').innerText = "Ralat: Sila semak URL atau akses fail.";
+        })
+        .getDashboardData(monitorUrl); 
+    }
+
+    function processData(data) {
+      data = data.filter(function(item) {
+        var dripStatus = item.drip.toUpperCase();
+        var bukanUbatStatus = item.bukanUbat.toUpperCase();
+        var dripBelum = dripStatus.includes("BELUM DITERIMA") || dripStatus.trim() === "";
+        var bukanUbatBelum = bukanUbatStatus.includes("BELUM DITERIMA") || bukanUbatStatus.trim() === "";
+        return !(dripBelum && bukanUbatBelum);
+      });
+
+      data.sort(function(a, b) {
+        return a.unit.localeCompare(b.unit);
+      });
+
+      updateBanner(data);
+
+      if (!isFirstLoad) {
+        let changedUnits = [];
+        let emailsToSend = {}; 
+
+        data.forEach(function(newItem) {
+          let oldItem = previousData.find(item => item.unit === newItem.unit);
+          
+          if (oldItem) {
+            let toastChanges = [];
+            let emailChanges = [];
+            
+            if (oldItem.drip !== newItem.drip) {
+              toastChanges.push(`Drip: ${newItem.drip}`);
+              let oldDrip = oldItem.drip || 'Tiada';
+              emailChanges.push(`• Drip: <span style="color:#64748b;"><s>${oldDrip}</s></span> ➔ <b style="color:#10b981;">${newItem.drip}</b>`);
+            }
+            
+            if (oldItem.bukanUbat !== newItem.bukanUbat) {
+              toastChanges.push(`Bukan Ubat: ${newItem.bukanUbat}`);
+              let oldBukan = oldItem.bukanUbat || 'Tiada';
+              emailChanges.push(`• Bukan Ubat: <span style="color:#64748b;"><s>${oldBukan}</s></span> ➔ <b style="color:#10b981;">${newItem.bukanUbat}</b>`);
+            }
+            
+            if (toastChanges.length > 0) {
+              changedUnits.push(`${newItem.unit} (${toastChanges.join(", ")})`);
+              
+              let picEmail = newItem.emel;
+              if (picEmail && picEmail.includes("@")) {
+                if (!emailsToSend[picEmail]) emailsToSend[picEmail] = [];
+                let unitBox = `
+                  <li style="margin-bottom: 15px; padding: 15px; background-color: #f8fafc; border-left: 5px solid #3b82f6; border-radius: 6px; font-family: sans-serif;">
+                    <div style="font-size: 18px; color: #0f172a; margin-bottom: 8px;"><b>UNIT: ${newItem.unit}</b></div>
+                    <div style="font-size: 15px; line-height: 1.6;">${emailChanges.join("<br>")}</div>
+                  </li>`;
+                emailsToSend[picEmail].push(unitBox);
+              }
+            }
+          } else {
+            changedUnits.push(`${newItem.unit} (Status Baru)`);
+            let picEmail = newItem.emel;
+            if (picEmail && picEmail.includes("@")) {
+              if (!emailsToSend[picEmail]) emailsToSend[picEmail] = [];
+              let unitBox = `
+                  <li style="margin-bottom: 15px; padding: 15px; background-color: #f8fafc; border-left: 5px solid #10b981; border-radius: 6px; font-family: sans-serif;">
+                    <div style="font-size: 18px; color: #0f172a; margin-bottom: 8px;"><b>UNIT: ${newItem.unit}</b></div>
+                    <div style="font-size: 15px; color: #10b981; line-height: 1.6;"><b>• Status Baru Ditambah</b></div>
+                  </li>`;
+              emailsToSend[picEmail].push(unitBox);
+            }
+          }
+        });
+
+        if (changedUnits.length > 0) {
+          playAlertSound();
+          
+          let toastMsg = changedUnits.join(" <br> ");
+          showToast(toastMsg);
+          startTitleBlink("INDEN BARU!");
+          
+          var masaKemasKini = new Date().toLocaleTimeString('ms-MY');
+          
+          for (let email in emailsToSend) {
+            let emailDetails = emailsToSend[email].join("");
+            
+            let mesejEmel = `
+              <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <div style="background-color: #2563eb; color: #ffffff; padding: 20px; text-align: center;">
+                  <h2 style="margin: 0; font-size: 22px; letter-spacing: 1px;">🚨 STATUS INDEN DIKEMAS KINI</h2>
+                </div>
+                <div style="padding: 25px; background-color: #ffffff; color: #334155;">
+                  <p style="font-size: 16px; margin-top: 0;">Salam sejahtera,</p>
+                  <p style="font-size: 16px;">Terdapat perubahan status inden logistik untuk unit jagaan anda. Sila rujuk butiran di bawah:</p>
+                  
+                  <ul style="list-style-type: none; padding: 0; margin: 25px 0;">
+                    ${emailDetails}
+                  </ul>
+                  
+                  <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+                  <p style="font-size: 14px; color: #64748b; margin: 0;">Masa Kemas Kini: <b style="color: #0f172a;">${masaKemasKini}</b></p>
+                  <p style="font-size: 14px; color: #64748b;">Sila semak sistem dashboard atau fail Google Sheets anda untuk tindakan lanjut.</p>
+                </div>
+              </div>
+            `;
+            
+            google.script.run.sendEmailNotification(mesejEmel, email);
+          }
+        }
+      }
+      
+      previousData = JSON.parse(JSON.stringify(data));
+      isFirstLoad = false;
+      
+      renderDashboard(data);
+      filterCards();
+    }
+
+    function updateBanner(data) {
+      var readyUnits = [];
+      var seenUnits = [];
+      
+      data.forEach(function(item) {
+        var dripStatus = item.drip.toUpperCase();
+        var bukanUbatStatus = item.bukanUbat.toUpperCase();
+        
+        if (dripStatus.includes("SEDIA DIAMBIL") || bukanUbatStatus.includes("SEDIA DIAMBIL")) {
+          if (!seenUnits.includes(item.unit)) {
+            seenUnits.push(item.unit);
+            var troliCount = item.jumTroli === "-" ? "0" : item.jumTroli;
+            var unitText = item.unit + " (" + troliCount + " Troli)";
+            readyUnits.push(unitText);
+          }
+        }
+      });
+
+      var bannerElement = document.getElementById('dynamicBanner');
+      if (readyUnits.length > 0) {
+        var unitsText = readyUnits.join(" • ");
+        var message = `✅ UNIT SEDIA DIAMBIL: ${unitsText} ✅ \u00A0\u00A0\u00A0\u00A0\u00A0\u00A0 `;
+        bannerElement.innerText = message + message + message;
+      } else {
+        bannerElement.innerText = "✅ TIADA INDEN SEDIA DIAMBIL PADA MASA INI ✅";
+      }
+    }
+
+    function getBadgeClass(statusText) {
+      var text = statusText.toUpperCase();
+      if (text.includes("SEDIA DIAMBIL")) return "bg-green";
+      if (text.includes("DIPROSES")) return "bg-yellow";
+      if (text.includes("BARU DITERIMA")) return "bg-blue";
+      if (text.includes("BELUM DITERIMA")) return "bg-gray";
+      return "bg-blue"; 
+    }
+
+    function renderDashboard(data) {
+      var container = document.getElementById('app');
+      if (data.length === 0) {
+        container.innerHTML = '<div class="loader">Tiada unit aktif pada masa ini.</div>';
+        return;
+      }
+
+      var htmlContent = "";
+      data.forEach(function(item) {
+        var isReady = item.drip.toUpperCase().includes("SEDIA DIAMBIL") || item.bukanUbat.toUpperCase().includes("SEDIA DIAMBIL");
+        var glowClass = isReady ? " glow-green" : "";
+
+        htmlContent += `
+          <div class="card unit-card${glowClass}" data-unit="${item.unit.toLowerCase()}">
+            <div class="card-title">${item.unit}</div>
+            <div class="status-row">
+              <span class="status-label">Drip:</span>
+              <div class="status-badge ${getBadgeClass(item.drip)}">${item.drip}</div>
+            </div>
+            <div class="status-row">
+              <span class="status-label">Bukan Ubat:</span>
+              <div class="status-badge ${getBadgeClass(item.bukanUbat)}">${item.bukanUbat}</div>
+            </div>
+            <div class="card-footer">
+              <div class="footer-item">
+                <div class="footer-val" style="color: ${item.jumTroli === '-' ? 'var(--text-color)' : 'var(--cyan-text)'}">${item.jumTroli}</div>
+                <div class="footer-lbl">JUMLAH TROLI</div>
+              </div>
+              <div class="footer-item">
+                <div class="footer-val">${item.perluTroli}</div>
+                <div class="footer-lbl">PERLU TROLI</div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = htmlContent;
+    }
+
+    function showToast(message) {
+      var container = document.getElementById('toast-container');
+      var toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<span class="toast-icon">🚨</span> <span>${message}</span><div class="toast-progress"></div>`;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => { toast.classList.add('show'); }, 10);
+      
+      setTimeout(() => { 
+        toast.classList.remove('show');
+        setTimeout(() => { toast.remove(); }, 500); 
+      }, 6000);
+    }
+
+    function playAlertSound() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        var osc = audioCtx.createOscillator();
+        var gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.type = 'sine'; 
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+        
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); 
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5); 
+      } catch(e) {
+        console.log("Audio blocked.");
+      }
+    }
+
+    function startTitleBlink(alertMessage) {
+      clearInterval(blinkInterval);
+      let isAltTitle = false;
+      
+      blinkInterval = setInterval(() => {
+        document.title = isAltTitle ? originalTitle : "🚨 " + alertMessage + " 🚨";
+        isAltTitle = !isAltTitle;
+      }, 1000); 
+    }
+
+    function stopTitleBlink() {
+      clearInterval(blinkInterval);
+      document.title = originalTitle;
+    }
+
+    window.addEventListener('focus', stopTitleBlink);
+    document.addEventListener('mousemove', stopTitleBlink, { once: false });
+
+    function filterCards() {
+      var input = document.getElementById('searchInput').value.toLowerCase();
+      var cards = document.getElementsByClassName('unit-card');
+      
+      for (var i = 0; i < cards.length; i++) {
+        var unitName = cards[i].getAttribute('data-unit');
+        if (unitName.includes(input)) {
+          cards[i].style.display = "flex";
+        } else {
+          cards[i].style.display = "none";
+        }
+      }
+    }
+
+    setInterval(function() {
+      var now = new Date();
+      document.getElementById('clock').innerText = "Masa sistem: " + now.toLocaleTimeString('ms-MY');
+    }, 1000);
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+      var btn = document.querySelector('button[onclick="toggleTheme()"]');
+      if (document.body.classList.contains('light-mode')) {
+        btn.innerText = '🌙 Mod Gelap';
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", "#f1f5f9");
+      } else {
+        btn.innerText = '☀️ Mod Cerah';
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", "#0f172a");
+      }
+    }
+  </script>
+</body>
+</html>
